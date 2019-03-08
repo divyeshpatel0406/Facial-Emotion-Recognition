@@ -48,7 +48,9 @@ for img in IMAGES: #Go through each file in the folder
 
         #If we fail to detect a face a second time, print the image number
         if not list(faces2):
-            print(i)
+            print("No face found " + str(i))
+        else:
+            print("Bad lighting " + str(i))
         #Draw a rectangle around the faces detected in the image
         for (x, y, w, h) in faces2:
             img = cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
@@ -61,7 +63,8 @@ for img in IMAGES: #Go through each file in the folder
         roi_gray = gray[y:y+h, x:x+w]
 
     #Write the altered image to the results folder
-    cv2.imwrite(PATH + 'pic{:>05}.jpg'.format(i), img)
+    cv2.imwrite(PATH + 'pic %d.jpg'%i, img)
+    i+=1
 
 #Garbage cleanup
 cv2.destroyAllWindows()
