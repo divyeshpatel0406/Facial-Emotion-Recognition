@@ -24,7 +24,7 @@ import dlib
 IMAGES = [cv2.imread(file) for file in glob.glob('faces/*jpg')] #Input path
 PATH = 'faces/results/' #Output path
 #PATH FOR THE PREDICTOR FILE FOR DETECTING LANDMARKS
-PREDICTOR_PATH = 'shape_predictor_68_face_landmarks.dat'
+PREDICTOR_PATH = 'dlib_face_landmarks.dat'
 
 #Using local copy of cascade to ensure it doesn't change or "update" during development
 FACE_CASCADE = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
