@@ -12,12 +12,16 @@ from keras.callbacks import ReduceLROnPlateau, TensorBoard, EarlyStopping, Model
 from keras.models import load_model
 from keras.models import model_from_json
 from keras.callbacks import ModelCheckpoint
-
+from keras.callbacks import EarlyStopping
+import tensorflow as tf
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+session = tf.Session(config=config)
 
 num_features = 64
 num_labels = 7
-batch_size = 64
-epochs = 2 #Previous #50
+batch_size = 256
+epochs = 100 #Previous #50
 width, height = 48, 48
 
 x = np.load("fdataX.npy")
@@ -56,12 +60,6 @@ model.add(BatchNormalization())
 model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
 model.add(Dropout(0.5))
 
-model.add(Conv2D(2*2*2*num_features, kernel_size=(3, 3), activation='relu', padding='same'))
-model.add(BatchNormalization())
-model.add(Conv2D(2*2*2*num_features, kernel_size=(3, 3), activation='relu', padding='same'))
-model.add(BatchNormalization())
-model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
-model.add(Dropout(0.5))
 
 model.add(Flatten())
 
@@ -83,12 +81,16 @@ model.compile(loss=categorical_crossentropy,
 
 #Checkpoint
 filepath = "checkpoint-{epoch:02d}-{val_acc:.2f}.hdf5"
-checkpoint = ModelCheckpoint(filepath,
-			monitor='val_acc',
-			verbose=1,
-			save_best_only=True,
-			mod='max')
-callbacks_list = [checkpoint]
+checkpoint = [EarlyStopping(monitor='val_loss',
+                            patience=5,
+                            verbose=1,
+                            mode='auto'),
+              ModelCheckpoint(filepath,
+                              monitor='val_acc',
+                              verbose=1,
+                              save_best_only=True,
+                              mode='max')]
+callbacks_list = checkpoint
 
 #training the model
 model.fit(np.array(X_train), np.array(y_train),
