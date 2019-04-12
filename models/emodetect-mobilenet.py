@@ -34,6 +34,7 @@ for layer in model.layers[20:]:
 
 train_datagen=ImageDataGenerator(preprocessing_function=preprocess_input) 
 
+#./train/ should be a folder containing 5 folders named after each emotion, with each folder filled with pictures of said emotion
 train_generator=train_datagen.flow_from_directory('./train/',
                                                  target_size=(224,224),
                                                  color_mode='rgb',
