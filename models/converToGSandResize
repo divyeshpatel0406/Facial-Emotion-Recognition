@@ -1,0 +1,13 @@
+from scipy.misc import imsave
+from PIL import Image
+#make sure to download necesarry libraries:
+
+#open image and conver to grayscale
+image = Image.open(r'C:\CSProject\sad_selfie.jpg').convert('L')
+
+#resize
+out = image.resize((48,48))
+
+#save image to desktop folder
+out.save(r'C:\CSProject\new.jpg')
+print("all done")
