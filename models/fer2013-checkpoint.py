@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from keras.models import Sequential
-from keras.layers import Dense, Dropout, Activation, Flatten
+from keras.layers import Dense, Dropout, Flatten
 from keras.layers import Conv2D, MaxPooling2D, BatchNormalization
 from keras.losses import categorical_crossentropy
 from keras.optimizers import Adam
@@ -13,6 +13,7 @@ from keras.models import load_model
 from keras.models import model_from_json
 from keras.callbacks import ModelCheckpoint
 from keras.callbacks import EarlyStopping
+from sklearn.metrics import classification_report
 import tensorflow as tf
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
@@ -27,9 +28,9 @@ width, height = 48, 48
 x = np.load("fdataX.npy")
 y = np.load("flabels.npy")
 
-#x -= np.mean(x, axis=0)
-#x /= np.std(x, axis=0)
-#splitting into training, validation and testing data
+# x -= np.mean(x, axis=0)
+# x /= np.std(x, axis=0)
+# splitting into training, validation and testing data
 X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.1, random_state=42)
 X_train, X_valid, y_train, y_valid = train_test_split(X_train, y_train, test_size=0.1, random_state=41)
 
@@ -37,7 +38,7 @@ X_train, X_valid, y_train, y_valid = train_test_split(X_train, y_train, test_siz
 np.save('modXtest', X_test)
 np.save('modytest', y_test)
 
-#desinging the CNN
+# #desinging the CNN
 model = Sequential()
 
 model.add(Conv2D(num_features, kernel_size=(3, 3), activation='relu', input_shape=(width, height, 1), data_format='channels_last', kernel_regularizer=l2(0.01)))
@@ -72,17 +73,18 @@ model.add(Dropout(0.5))
 
 model.add(Dense(num_labels, activation='softmax'))
 
-#model.summary()
 
-#Compliling the model with adam optimixer and categorical crossentropy loss
+# model.summary()
+
+# Compliling the model with adam optimixer and categorical crossentropy loss
 model.compile(loss=categorical_crossentropy,
-              optimizer=Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-7),
+              optimizer=Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-12),
               metrics=['accuracy'])
 
-#Checkpoint
+# Checkpoint
 filepath = "checkpoint-{epoch:02d}-{val_acc:.2f}.hdf5"
 checkpoint = [EarlyStopping(monitor='val_loss',
-                            patience=5,
+                            patience=30,
                             verbose=1,
                             mode='auto'),
               ModelCheckpoint(filepath,
@@ -91,8 +93,7 @@ checkpoint = [EarlyStopping(monitor='val_loss',
                               save_best_only=True,
                               mode='max')]
 callbacks_list = checkpoint
-
-#training the model
+# training the model
 model.fit(np.array(X_train), np.array(y_train),
           batch_size=batch_size,
           epochs=epochs,
@@ -101,7 +102,16 @@ model.fit(np.array(X_train), np.array(y_train),
           validation_data=(np.array(X_valid), np.array(y_valid)),
           shuffle=True)
 
-#saving the  model to be used later
+
+# Show metrics for the model using the test data
+labels = ['Angry', 'Disgust', 'Fear', 'Happy', 'Sad', 'Surprise', 'Neutral']
+
+y_pred = model.predict(X_test)
+y_pred = np.argmax(y_pred, axis=1)
+y_test = np.argmax(y_test, axis=1)
+print(classification_report(y_test, y_pred, target_names=labels))
+
+# saving the  model to be used later
 fer_json = model.to_json()
 with open("fer.json", "w") as json_file:
     json_file.write(fer_json)
