@@ -36,7 +36,7 @@ train_datagen=ImageDataGenerator(preprocessing_function=preprocess_input)
 train_generator=train_datagen.flow_from_directory('./train/',
                                                  target_size=(48,48),
                                                  color_mode='rgb',
-                                                 batch_size=32,
+                                                 batch_size=20,
                                                  class_mode='categorical',
                                                  shuffle=True)
 
