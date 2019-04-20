@@ -25,10 +25,10 @@ y=None
 labels = ['Angry', 'Disgust', 'Fear', 'Happy', 'Sad', 'Surprise', 'Neutral']
 
 # loading image
-full_size_image = cv2.imread("test_images/Surprised1.jpg")
+full_size_image = cv2.imread("test_images/Happy1.jpg")
 print("Image Loaded")
 gray = cv2.cvtColor(full_size_image, cv2.COLOR_RGB2GRAY)
-CLAHE_2 = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
+CLAHE_2 = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(4, 4))
 gray = CLAHE_2.apply(gray)
 
 # Using local copy of cascade to ensure it doesn't change or "update" during development
