@@ -25,7 +25,9 @@ y=None
 labels = ['Angry', 'Disgust', 'Fear', 'Happy', 'Sad', 'Surprise', 'Neutral']
 
 # loading image
-full_size_image = cv2.imread("test_images/Happy1.jpg")
+full_size_image = cv2.imread('test_images/Sad7.jpg')
+if full_size_image is None:
+    raise SystemExit("Image does not exist. Please check filename.")
 print("Image Loaded")
 gray = cv2.cvtColor(full_size_image, cv2.COLOR_RGB2GRAY)
 CLAHE_2 = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(4, 4))
@@ -33,16 +35,16 @@ gray = CLAHE_2.apply(gray)
 
 # Using local copy of cascade to ensure it doesn't change or "update" during development
 FACE_CASCADE = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
-faces = FACE_CASCADE.detectMultiScale(gray, 1.09, 3) #Attempt to find faces in the image
+faces = FACE_CASCADE.detectMultiScale(gray, 1.03, 3) #Attempt to find faces in the image
 largest_region = (0, 0, 0, 0)
-print("Detected {} face(s)".format(len(faces)))
+print("Detected {} face(s). Using largest region.".format(len(faces)))
 for (x, y, w, h) in faces:
     if w > largest_region[2] and h > largest_region[3]:
         largest_region = x, y, w, h
 x, y, w, h = largest_region
 gray_roi = gray[y:y+h, x:x+w]
 
-cropped_img = np.expand_dims(np.expand_dims(cv2.resize(gray_roi, (48, 48)), -1), 0)
+cropped_img = np.expand_dims(np.expand_dims(cv2.resize(gray_roi, (48, 48), interpolation=cv2.INTER_CUBIC), -1), 0)
 final_image = loaded_model.predict_proba(cropped_img)
 
 
