@@ -43,7 +43,7 @@ while True:
 
     # Using local copy of cascade to ensure it doesn't change or "update" during development
     FACE_CASCADE = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
-    faces = FACE_CASCADE.detectMultiScale(gray, 1.5, 3) #Attempt to find faces in the image
+    faces = FACE_CASCADE.detectMultiScale(gray, 1.6, 3) #Attempt to find faces in the image
     largest_region = (0, 0, 0, 0)
     # print("Detected {} face(s). Using largest region.".format(len(faces)))
     for (x, y, w, h) in faces:
@@ -73,7 +73,7 @@ while True:
             if index == int(np.argmax(final_image)): color = (255,255,255)
             cv2.putText(frame, labels[index] + ": {0:.4f}%".format(final_image[0][index] * 100), (x, y+offset*index), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
         cv2.imshow('capture', frame)
-        cv2.waitKey(1)
+        
 
         # Save image to folder
         emotion_max_label = labels[int(np.argmax(final_image))]
@@ -81,3 +81,4 @@ while True:
         cv2.imwrite(savepath, gray_roi)
         # savepath = "wrong_images/" + emotion_max_label +"_wrong.jpg"
         # cv2.imwrite(savepath, full_size_image)
+    cv2.waitKey(1)
