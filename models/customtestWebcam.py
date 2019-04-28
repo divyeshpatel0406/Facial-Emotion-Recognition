@@ -81,4 +81,6 @@ while True:
         cv2.imwrite(savepath, gray_roi)
         # savepath = "wrong_images/" + emotion_max_label +"_wrong.jpg"
         # cv2.imwrite(savepath, full_size_image)
-    cv2.waitKey(1)
+    if(cv2.waitKey(1) % 256 == 27):
+        cv2.destroyAllWindows()
+        raise SystemExit("Escape key pressed. Exiting program.")
