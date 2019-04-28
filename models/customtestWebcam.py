@@ -80,7 +80,7 @@ while True:
     while not vs.grabbed:
         pass
     frame = vs.read()
-    # cv2.imshow("capture", frame)
+    cv2.imshow("capture", frame)
 
     full_size_image = frame
     # loading image
