@@ -3,18 +3,36 @@ from __future__ import division
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.models import model_from_json
+import threading
 import numpy
-import os
+import os, sys
 import numpy as np
 import cv2
 import multiprocessing
+from queue import Queue
 # loading the model
-json_file = open('fer_70.json', 'r')
+model_filename = 'fer_70.json'
+weights_filename = 'fer_70.hdf5'
+cascade_filename = 'haarcascade_frontalface_default.xml'
+
+import sys, os
+if getattr(sys, 'frozen', False):
+    # If the application is run as a bundle, the pyInstaller bootloader
+    # extends the sys module by a flag frozen=True and sets the app 
+    # path into variable _MEIPASS'.
+    application_path = sys._MEIPASS
+else:
+    application_path = os.path.dirname(os.path.abspath(__file__))
+
+model_filename = os.path.join(application_path, model_filename)
+weights_filename = os.path.join(application_path, weights_filename)
+cascade_filename = os.path.join(application_path, cascade_filename)
+json_file = open(model_filename, 'r')
 loaded_model_json = json_file.read()
 json_file.close()
 loaded_model = model_from_json(loaded_model_json)
 # load weights into new model
-loaded_model.load_weights("fer_70.hdf5")
+loaded_model.load_weights(weights_filename)
 print("Loaded model from disk")
 # setting image resizing parameters
 WIDTH = 48
@@ -23,14 +41,45 @@ x=None
 y=None
 labels = ['Angry', 'Disgust', 'Fear', 'Happy', 'Sad', 'Surprise', 'Neutral']
 
+class WebcamVideoStream :
+    def __init__(self, src = 0, width = 320, height = 240) :
+        self.stream = cv2.VideoCapture(src)
+        (self.grabbed, self.frame) = self.stream.read()
+        self.started = False
+        self.read_lock = threading.Lock()
 
-cap = cv2.VideoCapture(0)
+    def start(self) :
+        if self.started :
+            print ("already started!!")
+            return None
+        self.started = True
+        self.thread = threading.Thread(target=self.update, args=())
+        self.thread.start()
+        return self
+
+    def update(self) :
+        while self.started :
+            (grabbed, frame) = self.stream.read()
+            self.read_lock.acquire()
+            self.grabbed, self.frame = grabbed, frame
+            self.read_lock.release()
+
+    def read(self) :
+        self.read_lock.acquire()
+        frame = self.frame.copy()
+        self.read_lock.release()
+        return frame
+
+    def stop(self) :
+        self.started = False
+        self.thread.join()
+
+vs = WebcamVideoStream()
+vs.start()
 while True:
-    
-    ret, frame = cap.read()
-    cv2.imshow("capture", frame)
-    if not ret:
-        break
+    frame = vs.read()
+    # cv2.imshow("capture", frame)
+
     full_size_image = frame
     # loading image
     # full_size_image = cv2.imread('test_images/Unknown2.jpg')
@@ -42,7 +91,7 @@ while True:
     gray = CLAHE_2.apply(gray)
 
     # Using local copy of cascade to ensure it doesn't change or "update" during development
-    FACE_CASCADE = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+    FACE_CASCADE = cv2.CascadeClassifier(cascade_filename)
     faces = FACE_CASCADE.detectMultiScale(gray, 1.6, 3) #Attempt to find faces in the image
     largest_region = (0, 0, 0, 0)
     # print("Detected {} face(s). Using largest region.".format(len(faces)))
@@ -82,5 +131,6 @@ while True:
         # savepath = "wrong_images/" + emotion_max_label +"_wrong.jpg"
         # cv2.imwrite(savepath, full_size_image)
     if(cv2.waitKey(1) % 256 == 27):
+        vs.stop()
         cv2.destroyAllWindows()
         raise SystemExit("Escape key pressed. Exiting program.")
