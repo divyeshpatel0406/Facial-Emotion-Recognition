@@ -77,6 +77,8 @@ class WebcamVideoStream :
 vs = WebcamVideoStream()
 vs.start()
 while True:
+    while not vs.grabbed:
+        pass
     frame = vs.read()
     # cv2.imshow("capture", frame)
 
